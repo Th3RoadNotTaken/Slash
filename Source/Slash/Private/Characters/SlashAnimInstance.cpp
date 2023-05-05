@@ -26,5 +26,6 @@ void USlashAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	{
 		GroundSpeed = UKismetMathLibrary::VSizeXY(SlashCharacterMovement->Velocity); // Get the magnitude of the velocity vector for only the X & Y components.
 		bIsFalling = SlashCharacterMovement->IsFalling();
+		CharacterState = SlashCharacter->GetCharacterState();
 	}
 }
