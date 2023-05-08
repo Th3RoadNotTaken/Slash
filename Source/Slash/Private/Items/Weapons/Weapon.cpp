@@ -3,6 +3,8 @@
 
 #include "Items/Weapons/Weapon.h"
 #include "Characters/SlashCharacter.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/SphereComponent.h"
 
 AWeapon::AWeapon()
 {
@@ -20,6 +22,22 @@ void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 }
 
 void AWeapon::Equip(USceneComponent* InParent, FName InSocketName)
+{
+	AttachMeshToSocket(InParent, InSocketName);
+	ItemState = EItemState::EIS_Equipped;
+	
+	if (Sphere)
+	{
+		Sphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
+	if (EquipSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), EquipSound, GetActorLocation());
+	}
+}
+
+void AWeapon::AttachMeshToSocket(USceneComponent* InParent, const FName& InSocketName)
 {
 	FAttachmentTransformRules TransformRules(EAttachmentRule::SnapToTarget, true);
 	ItemMesh->AttachToComponent(InParent, TransformRules, InSocketName);
