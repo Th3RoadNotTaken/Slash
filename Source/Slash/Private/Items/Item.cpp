@@ -52,7 +52,10 @@ void AItem::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 	if (OtherActor)
 	{
 		ASlashCharacter* Character = Cast<ASlashCharacter>(OtherActor);
-		Character->SetOverlappingItem(this);
+		if (Character)
+		{
+			Character->SetOverlappingItem(this);
+		}
 	}
 }
 
@@ -61,6 +64,9 @@ void AItem::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 	if (OtherActor)
 	{
 		ASlashCharacter* Character = Cast<ASlashCharacter>(OtherActor);
-		Character->SetOverlappingItem(nullptr);
+		if (Character)
+		{
+			Character->SetOverlappingItem(nullptr);
+		}
 	}
 }
