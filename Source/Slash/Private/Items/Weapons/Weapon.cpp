@@ -7,12 +7,13 @@
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Interfaces/HitInterface.h"
 
 AWeapon::AWeapon()
 {
 	WeaponHitBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Weapon HitBox"));
 	WeaponHitBox->SetupAttachment(GetRootComponent());
-	WeaponHitBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	WeaponHitBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	WeaponHitBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
 	WeaponHitBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 
@@ -47,11 +48,26 @@ void AWeapon::OnWeaponHitBoxBeginOverlap(UPrimitiveComponent* OverlappedComponen
 	ActorsToIgnore.Add(this);
 	FHitResult BoxHit;
 
+	for (AActor* Actor : IgnoreActors)
+	{
+		ActorsToIgnore.AddUnique(Actor);
+	}
+
 	UWorld* World = GetWorld();
 	if (World)
 	{
 		UKismetSystemLibrary::BoxTraceSingle(World, Start, End, FVector(5.f, 5.f, 5.f), BoxTraceStart->GetComponentRotation(), ETraceTypeQuery::TraceTypeQuery1,
 			false, ActorsToIgnore, EDrawDebugTrace::ForDuration, BoxHit, true);
+	}
+
+	if (BoxHit.GetActor())
+	{
+		IHitInterface* HitInterface = Cast<IHitInterface>(BoxHit.GetActor());
+		if (HitInterface)
+		{
+			HitInterface->GetHit(BoxHit.ImpactPoint);
+		}
+		IgnoreActors.AddUnique(BoxHit.GetActor());
 	}
 }
 

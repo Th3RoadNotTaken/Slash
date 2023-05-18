@@ -10,6 +10,7 @@
 #include "GroomComponent.h"
 #include "Items/Weapons/Weapon.h"
 #include "Animation/AnimMontage.h"
+#include "Components/BoxComponent.h"
 
 ASlashCharacter::ASlashCharacter()
 { 	
@@ -166,6 +167,15 @@ void ASlashCharacter::AttackEnd()
 	ActionState = EActionState::EAS_Unoccupied;
 }
 
+void ASlashCharacter::SetWeaponCollisonEnabled(ECollisionEnabled::Type CollisionEnabled)
+{
+	if (EquippedWeapon && EquippedWeapon->GetWeaponHitBox())
+	{
+		EquippedWeapon->GetWeaponHitBox()->SetCollisionEnabled(CollisionEnabled);
+		EquippedWeapon->IgnoreActors.Empty();
+	}
+}
+
 void ASlashCharacter::PlayAttackMontage()
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -194,7 +204,7 @@ void ASlashCharacter::PlayAttackMontage()
 	}
 }
 
-void ASlashCharacter::PlayEquipMontage(FName SectionName)
+void ASlashCharacter::PlayEquipMontage(const FName& SectionName)
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
