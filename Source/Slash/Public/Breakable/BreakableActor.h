@@ -26,11 +26,18 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	class UCapsuleComponent* Capsule;
 
+	UFUNCTION()
+	void OnChaosBreak(const FChaosBreakEvent& BreakEvent);
+
 private:
 	UPROPERTY(VisibleAnywhere)
 	UGeometryCollectionComponent* GeometryCollection;
 
 	UPROPERTY(EditAnywhere, Category = "Breakable Properties")
-	TSubclassOf<class ATreasure> TreasureClass;
+	TArray<TSubclassOf<class ATreasure>> TreasureClasses;
 
+	UPROPERTY(EditAnywhere, Category = "Breakable Properties")
+	class USoundBase* BreakSound;
+
+	bool bBroken = false;
 };

@@ -45,7 +45,7 @@ void AWeapon::OnWeaponHitBoxBeginOverlap(UPrimitiveComponent* OverlappedComponen
 	const FVector Start = BoxTraceStart->GetComponentLocation();
 	const FVector End = BoxTraceEnd->GetComponentLocation();
 	TArray<AActor*> ActorsToIgnore;
-	ActorsToIgnore.Add(this);
+	ActorsToIgnore.AddUnique(this);
 	FHitResult BoxHit;
 
 	for (AActor* Actor : IgnoreActors)
@@ -65,6 +65,7 @@ void AWeapon::OnWeaponHitBoxBeginOverlap(UPrimitiveComponent* OverlappedComponen
 		IHitInterface* HitInterface = Cast<IHitInterface>(BoxHit.GetActor());
 		if (HitInterface)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"),*BoxHit.GetActor()->GetName())
 			HitInterface->Execute_GetHit(BoxHit.GetActor(), BoxHit.ImpactPoint);
 		}
 		IgnoreActors.AddUnique(BoxHit.GetActor());
