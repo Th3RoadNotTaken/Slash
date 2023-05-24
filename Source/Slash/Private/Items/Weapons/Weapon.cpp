@@ -8,6 +8,7 @@
 #include "Components/BoxComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Interfaces/HitInterface.h"
+#include "NiagaraComponent.h"
 
 AWeapon::AWeapon()
 {
@@ -65,7 +66,6 @@ void AWeapon::OnWeaponHitBoxBeginOverlap(UPrimitiveComponent* OverlappedComponen
 		IHitInterface* HitInterface = Cast<IHitInterface>(BoxHit.GetActor());
 		if (HitInterface)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"),*BoxHit.GetActor()->GetName())
 			HitInterface->Execute_GetHit(BoxHit.GetActor(), BoxHit.ImpactPoint);
 		}
 		IgnoreActors.AddUnique(BoxHit.GetActor());
@@ -87,6 +87,11 @@ void AWeapon::Equip(USceneComponent* InParent, FName InSocketName)
 	if (EquipSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), EquipSound, GetActorLocation());
+	}
+
+	if (EmbersEffect)
+	{
+		EmbersEffect->Deactivate();
 	}
 }
 
