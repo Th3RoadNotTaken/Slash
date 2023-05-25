@@ -98,6 +98,9 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	AItem* OverlappingItem;
 
+	UPROPERTY(VisibleAnywhere)
+	FName EquippedWeaponTag;
+
 	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
 	EActionState ActionState = EActionState::EAS_Unoccupied;
 

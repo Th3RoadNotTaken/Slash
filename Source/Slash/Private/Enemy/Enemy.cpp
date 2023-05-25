@@ -29,13 +29,30 @@ AEnemy::AEnemy()
 
 void AEnemy::BeginPlay()
 {
-	Super::BeginPlay(); 	
+	Super::BeginPlay();
+	
+	if (HealthBarWidget)
+	{
+		HealthBarWidget->SetVisibility(false);
+	}
 }
 
 void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (CombatTarget)
+	{
+		const double DistanceToTarget = (CombatTarget->GetActorLocation() - GetActorLocation()).Size();
+		if (DistanceToTarget > CombatRadius)
+		{
+			CombatTarget = nullptr;
+			if (HealthBarWidget)
+			{
+				HealthBarWidget->SetVisibility(false);
+			}
+		}
+	}
 }
 
 void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -46,7 +63,19 @@ void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
 {
-	DirectionalHitReact(ImpactPoint);
+	if (HealthBarWidget)
+	{
+		HealthBarWidget->SetVisibility(true);
+	}
+	SetDirectionalHitQuadrant(ImpactPoint);
+	if (Attributes && Attributes->IsAlive())
+	{
+		DirectionalHitReact();
+	}
+	else
+	{
+		DirectionalDeathReact();
+	}
 
 	if (HitSound)
 	{
@@ -59,7 +88,7 @@ void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
 	}
 }
 
-void AEnemy::DirectionalHitReact(const FVector& ImpactPoint)
+void AEnemy::SetDirectionalHitQuadrant(const FVector& ImpactPoint)
 {
 	const FVector Forward = GetActorForwardVector();
 	const FVector ImpactLowered(ImpactPoint.X, ImpactPoint.Y, GetActorLocation().Z);
@@ -76,34 +105,80 @@ void AEnemy::DirectionalHitReact(const FVector& ImpactPoint)
 	{
 		Theta *= -1.f;
 	}
-
-	FName Section("ReactFromBack");
-
+	
 	if (Theta >= -45.f && Theta < 45.f)
 	{
-		Section = FName("ReactFromFront");
+		DirectionalHitQuadrant = EHitQuadrant::EHQ_Front;
 	}
 	else if (Theta >= -135.f && Theta < -45.f)
 	{
-		Section = FName("ReactFromLeft");
+		DirectionalHitQuadrant = EHitQuadrant::EHQ_Left;
 	}
 	else if (Theta >= 45.f && Theta < 135.f)
 	{
-		Section = FName("ReactFromRight");
+		DirectionalHitQuadrant = EHitQuadrant::EHQ_Right;
 	}
-
-	PlayHitReactMontage(Section);
-
-	/*
-	UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation() + CrossProduct * 100.f, 5.f, FColor::Orange, 5.f);
-
-	if (GEngine)
+	else
 	{
-		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Green, FString::Printf(TEXT("Theta: %f"), Theta));
+		DirectionalHitQuadrant = EHitQuadrant::EHQ_Back;
 	}
-	UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation() + Forward * 60.f, 5.f, FColor::Red, 5.f);
-	UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation() + ToHit * 60.f, 5.f, FColor::Green, 5.f);
-	*/
+}
+
+void AEnemy::DirectionalHitReact()
+{
+	FName HitReactMontageSection("ReactFromBack");
+
+	if (DirectionalHitQuadrant == EHitQuadrant::EHQ_Front)
+	{
+		HitReactMontageSection = FName("ReactFromFront");
+	}
+	else if (DirectionalHitQuadrant == EHitQuadrant::EHQ_Left)
+	{
+		HitReactMontageSection = FName("ReactFromLeft");
+	}
+	else if (DirectionalHitQuadrant == EHitQuadrant::EHQ_Right)
+	{
+		HitReactMontageSection = FName("ReactFromRight");
+	}
+	else
+	{
+		HitReactMontageSection = FName("ReactFromBack");
+	}
+
+	PlayHitReactMontage(HitReactMontageSection);
+}
+
+void AEnemy::DirectionalDeathReact()
+{
+	FName DeathMontageSection("DeathFromFront1");
+	DeathPose = EDeathPose::EDP_Death2;
+	const int32 DeathFromFrontSelection = FMath::RandRange(0, 1);
+
+	if (DirectionalHitQuadrant == EHitQuadrant::EHQ_Front)
+	{
+		if (DeathFromFrontSelection == 1)
+		{
+			DeathMontageSection = FName("DeathFromFront2");
+			DeathPose = EDeathPose::EDP_Death3;
+		}
+	}
+	else if (DirectionalHitQuadrant == EHitQuadrant::EHQ_Left)
+	{
+		DeathMontageSection = FName("DeathFromLeft");
+		DeathPose = EDeathPose::EDP_Death4;
+	}
+	else if (DirectionalHitQuadrant == EHitQuadrant::EHQ_Right)
+	{
+		DeathMontageSection = FName("DeathFromRight");
+		DeathPose = EDeathPose::EDP_Death5;
+	}
+	else
+	{
+		DeathMontageSection = FName("DeathFromBack");
+		DeathPose = EDeathPose::EDP_Death1;
+	}
+
+	Die(DeathMontageSection);
 }
 
 void AEnemy::PlayHitReactMontage(const FName& SectionName)
@@ -117,6 +192,22 @@ void AEnemy::PlayHitReactMontage(const FName& SectionName)
 	}
 }
 
+void AEnemy::Die(const FName& SectionName)
+{
+	if (HealthBarWidget)
+	{
+		HealthBarWidget->SetVisibility(false);
+	}
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && DeathMontage)
+	{
+		AnimInstance->Montage_Play(DeathMontage);
+		AnimInstance->Montage_JumpToSection(SectionName, DeathMontage);
+	}
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SetLifeSpan(5.f);
+}
+
 float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	if (Attributes)
@@ -128,5 +219,8 @@ float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AC
 			HealthBarWidget->SetHealthPercent(Attributes->GetHealthPercent());
 		}
 	}
+
+	CombatTarget = EventInstigator->GetPawn();
+
 	return DamageAmount;
 }

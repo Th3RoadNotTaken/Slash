@@ -93,8 +93,26 @@ void ASlashCharacter::EKeyPressed()
 	AWeapon* OverlappingWeapon = Cast<AWeapon>(OverlappingItem);
 	if (OverlappingWeapon)
 	{
-		OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
-		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+		if (OverlappingWeapon->ActorHasTag(FName("SingleHanded")))
+		{
+			if (EquippedWeapon)
+			{
+				EquippedWeapon->Destroy();
+			}
+			EquippedWeaponTag = FName("SingleHanded");
+			OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocketSingle"), this, this);
+			CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+		}
+		else if (OverlappingWeapon->ActorHasTag(FName("DoubleHanded")))
+		{
+			if (EquippedWeapon)
+			{
+				EquippedWeapon->Destroy();
+			}
+			EquippedWeaponTag = FName("DoubleHanded");
+			OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
+			CharacterState = ECharacterState::ECS_EquippedTwoHandedWeapon;
+		}
 		EquippedWeapon = OverlappingWeapon;
 		OverlappingItem = nullptr;
 	}
@@ -102,15 +120,30 @@ void ASlashCharacter::EKeyPressed()
 	{
 		if (CanDisarm())
 		{
-			PlayEquipMontage(FName("Unequip"));
+			if (EquippedWeaponTag == FName("SingleHanded"))
+			{
+				PlayEquipMontage(FName("UnequipSingleHanded"));
+			}
+			else
+			{
+				PlayEquipMontage(FName("UnequipDoubleHanded"));
+			}
 			CharacterState = ECharacterState::ECS_Unequipped;
 			ActionState = EActionState::EAS_EquippingWeapon;
 		}
 
 		else if (CanArm())
 		{
-			PlayEquipMontage(FName("Equip"));
-			CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+			if (EquippedWeaponTag == FName("SingleHanded"))
+			{
+				PlayEquipMontage(FName("EquipSingleHanded"));
+				CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+			}
+			else
+			{
+				PlayEquipMontage(FName("EquipDoubleHanded"));
+				CharacterState = ECharacterState::ECS_EquippedTwoHandedWeapon;
+			}
 			ActionState = EActionState::EAS_EquippingWeapon;
 		}
 	}
@@ -145,7 +178,10 @@ void ASlashCharacter::Disarm()
 {
 	if (EquippedWeapon)
 	{
-		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("SpineSocket"));
+		if (EquippedWeaponTag == FName("SingleHanded"))
+			EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("SpineSocketSingle"));
+		else
+			EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("SpineSocket"));
 	}
 }
 
@@ -153,7 +189,10 @@ void ASlashCharacter::Arm()
 {
 	if (EquippedWeapon)
 	{
-		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("RightHandSocket"));
+		if(EquippedWeaponTag == FName("SingleHanded"))
+			EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("RightHandSocketSingle"));
+		else
+			EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("RightHandSocket"));
 	}
 }
 
