@@ -222,22 +222,40 @@ void ASlashCharacter::PlayAttackMontage()
 	if (AnimInstance && AttackMontage)
 	{
 		AnimInstance->Montage_Play(AttackMontage);
-		const int32 Selection = FMath::RandRange(0, 2);
+		const int32 SingleHandedSelection = FMath::RandRange(0, 2);
+		const int32 DoubleHandedSelection = FMath::RandRange(0, 1);
 		FName SectionName = FName();
 
-		switch (Selection)
+		if (EquippedWeaponTag == FName("SingleHanded"))
 		{
-		case 0:
-			SectionName = FName("Attack1");
-			break;
-
-		case 1:
-			SectionName = FName("Attack2");
-			break;
-
-		case 2:
-			SectionName = FName("Attack3");
-			break;
+			switch (SingleHandedSelection)
+			{
+			case 0:
+				SectionName = FName("Attack1");
+				break;
+			case 1:
+				SectionName = FName("Attack2");
+				break;
+			case 2:
+				SectionName = FName("Attack3");
+				break;
+			default:
+				break;
+			}
+		}
+		else
+		{
+			switch (DoubleHandedSelection)
+			{
+			case 0:
+				SectionName = FName("GreatSword_Attack1");
+				break;
+			case 1:
+				SectionName = FName("GreatSword_Attack2");
+				break;
+			default:
+				break;
+			}
 		}
 		AnimInstance->Montage_JumpToSection(SectionName, AttackMontage);
 	}
