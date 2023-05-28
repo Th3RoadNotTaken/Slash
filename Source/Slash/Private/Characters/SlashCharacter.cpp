@@ -94,26 +94,21 @@ void ASlashCharacter::EKeyPressed()
 	AWeapon* OverlappingWeapon = Cast<AWeapon>(OverlappingItem);
 	if (OverlappingWeapon)
 	{
+		if (EquippedWeapon)
+		{
+			EquippedWeapon->Destroy();
+		}
 		if (OverlappingWeapon->ActorHasTag(FName("SingleHanded")))
 		{
-			if (EquippedWeapon)
-			{
-				EquippedWeapon->Destroy();
-			}
 			EquippedWeaponTag = FName("SingleHanded");
-			OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocketSingle"), this, this);
 			CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
 		}
 		else if (OverlappingWeapon->ActorHasTag(FName("DoubleHanded")))
 		{
-			if (EquippedWeapon)
-			{
-				EquippedWeapon->Destroy();
-			}
 			EquippedWeaponTag = FName("DoubleHanded");
-			OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
 			CharacterState = ECharacterState::ECS_EquippedTwoHandedWeapon;
 		}
+		OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
 		EquippedWeapon = OverlappingWeapon;
 		OverlappingItem = nullptr;
 	}
@@ -179,10 +174,7 @@ void ASlashCharacter::Disarm()
 {
 	if (EquippedWeapon)
 	{
-		if (EquippedWeaponTag == FName("SingleHanded"))
-			EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("SpineSocketSingle"));
-		else
-			EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("SpineSocket"));
+		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("SpineSocket"));
 	}
 }
 
@@ -190,10 +182,7 @@ void ASlashCharacter::Arm()
 {
 	if (EquippedWeapon)
 	{
-		if(EquippedWeaponTag == FName("SingleHanded"))
-			EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("RightHandSocketSingle"));
-		else
-			EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("RightHandSocket"));
+		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("RightHandSocket"));
 	}
 }
 

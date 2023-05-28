@@ -77,16 +77,6 @@ void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 }
 
-bool AEnemy::InTargetRange(AActor* Target, double AcceptanceRadius)
-{
-	if (Target == nullptr)
-		return false;
-	const double DistanceToTarget = (Target->GetActorLocation() - GetActorLocation()).Size();
-	DRAW_SPHERE_SINGLEFRAME(GetActorLocation());
-	DRAW_SPHERE_SINGLEFRAME(Target->GetActorLocation());
-	return DistanceToTarget <= AcceptanceRadius;
-}
-
 void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
 {
 	if (HealthBarWidget)
@@ -247,12 +237,25 @@ float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AC
 	}
 
 	CombatTarget = EventInstigator->GetPawn();
+	EnemyState = EEnemyState::EES_Chasing;
+	GetCharacterMovement()->MaxWalkSpeed = RunningSpeed;
+	MoveToTarget(CombatTarget);
 
 	return DamageAmount;
 }
 
+bool AEnemy::InTargetRange(AActor* Target, double AcceptanceRadius)
+{
+	if (Target == nullptr)
+		return false;
+	const double DistanceToTarget = (Target->GetActorLocation() - GetActorLocation()).Size();
+	return DistanceToTarget <= AcceptanceRadius;
+}
+
 void AEnemy::CheckCombatTarget()
 {
+	if (Attributes && !Attributes->IsAlive())
+		return;
 	if (!InTargetRange(CombatTarget, CombatRadius))
 	{
 		// Outside combat radius, lose interest
@@ -264,11 +267,29 @@ void AEnemy::CheckCombatTarget()
 		EnemyState = EEnemyState::EES_Patrolling;
 		GetCharacterMovement()->MaxWalkSpeed = WalkingSpeed;
 		MoveToTarget(PatrolTarget);
+		UE_LOG(LogTemp, Warning, TEXT("Lose interest"))
+	}
+	else if (!InTargetRange(CombatTarget, AttackRadius) && EnemyState!=EEnemyState::EES_Chasing)
+	{
+		// Outside attack range, chase character
+		EnemyState = EEnemyState::EES_Chasing;
+		GetCharacterMovement()->MaxWalkSpeed = RunningSpeed;
+		MoveToTarget(CombatTarget);
+		UE_LOG(LogTemp, Warning, TEXT("Chase player"))
+	}
+	else if (InTargetRange(CombatTarget, AttackRadius) && EnemyState != EEnemyState::EES_Attacking)
+	{
+		// Inside attack range, attack character
+		EnemyState = EEnemyState::EES_Attacking;
+		// TODO: Attack Montage
+		UE_LOG(LogTemp, Warning, TEXT("Attack"))
 	}
 }
 
 void AEnemy::CheckPatrolTarget()
 {
+	if (Attributes && !Attributes->IsAlive())
+		return;
 	if (InTargetRange(PatrolTarget, PatrolRadius))
 	{
 		PatrolTarget = ChoosePatrolTarget();
@@ -320,10 +341,14 @@ void AEnemy::PawnSeen(APawn* SeenPawn)
 		return;
 	if (SeenPawn && SeenPawn->ActorHasTag(FName("SlashCharacter")))
 	{
-		EnemyState = EEnemyState::EES_Chasing;
 		GetWorldTimerManager().ClearTimer(PatrolTimer);
 		GetCharacterMovement()->MaxWalkSpeed = RunningSpeed;
 		CombatTarget = SeenPawn;
-		MoveToTarget(CombatTarget);
+
+		if (EnemyState != EEnemyState::EES_Attacking)
+		{
+			EnemyState = EEnemyState::EES_Chasing;
+			MoveToTarget(CombatTarget);
+		}
 	}
 }
