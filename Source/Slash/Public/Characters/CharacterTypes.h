@@ -34,3 +34,12 @@ enum class EEnemyState : uint8
 	EES_Chasing UMETA(DisplayName = "Chasing"),
 	EES_Attacking UMETA(DisplayName = "Attacking")
 };
+
+UENUM()
+enum class EHitQuadrant : uint8
+{
+	EHQ_Front UMETA(DisplayName = " -45 <= Theta < 45"),
+	EHQ_Back UMETA(DisplayName = " -135 < Theta <= 135"),
+	EHQ_Left UMETA(DisplayName = " -135 <= Theta < -45"),
+	EHQ_Right UMETA(DisplayName = " 45 <= Theta < 135")
+};

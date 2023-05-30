@@ -62,7 +62,7 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASlashCharacter::Look);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(EKeyAction, ETriggerEvent::Triggered, this, &ASlashCharacter::EKeyPressed);
-		EnhancedInputComponent->BindAction(LMBAction, ETriggerEvent::Triggered, this, &ASlashCharacter::LMBPressed);
+		EnhancedInputComponent->BindAction(LMBAction, ETriggerEvent::Triggered, this, &ASlashCharacter::Attack);
 	}
 }
 
@@ -145,7 +145,7 @@ void ASlashCharacter::EKeyPressed()
 	}
 }
 
-void ASlashCharacter::LMBPressed()
+void ASlashCharacter::Attack()
 {
 	if (CanAttack())
 	{
@@ -194,15 +194,6 @@ void ASlashCharacter::FinishEquipping()
 void ASlashCharacter::AttackEnd()
 {
 	ActionState = EActionState::EAS_Unoccupied;
-}
-
-void ASlashCharacter::SetWeaponCollisonEnabled(ECollisionEnabled::Type CollisionEnabled)
-{
-	if (EquippedWeapon && EquippedWeapon->GetWeaponHitBox())
-	{
-		EquippedWeapon->GetWeaponHitBox()->SetCollisionEnabled(CollisionEnabled);
-		EquippedWeapon->IgnoreActors.Empty();
-	}
 }
 
 void ASlashCharacter::PlayAttackMontage()
