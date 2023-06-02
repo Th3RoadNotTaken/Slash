@@ -63,9 +63,13 @@ protected:
 	/**
 	* Play montage functions
 	*/
-	virtual void PlayAttackMontage() override;
 	virtual void AttackEnd() override;
 	virtual bool CanAttack() override;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	TArray<FName> SingleHandedAttackSections;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	TArray<FName> DoubleHandedAttackSections;
 
 	void PlayEquipMontage(const FName& SectionName);
 	bool CanDisarm();

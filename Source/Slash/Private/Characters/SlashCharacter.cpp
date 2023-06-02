@@ -147,9 +147,17 @@ void ASlashCharacter::EKeyPressed()
 
 void ASlashCharacter::Attack()
 {
+	Super::Attack();
 	if (CanAttack())
 	{
-		PlayAttackMontage();
+		if (EquippedWeaponTag == FName("SingleHanded"))
+		{
+			PlayAttackMontage(SingleHandedAttackSections);
+		}
+		else
+		{
+			PlayAttackMontage(DoubleHandedAttackSections);
+		}
 		ActionState = EActionState::EAS_Attacking;
 	}
 }
@@ -196,59 +204,7 @@ void ASlashCharacter::AttackEnd()
 	ActionState = EActionState::EAS_Unoccupied;
 }
 
-void ASlashCharacter::PlayAttackMontage()
-{
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-
-	if (AnimInstance && AttackMontage)
-	{
-		AnimInstance->Montage_Play(AttackMontage);
-		const int32 SingleHandedSelection = FMath::RandRange(0, 2);
-		const int32 DoubleHandedSelection = FMath::RandRange(0, 1);
-		FName SectionName = FName();
-
-		if (EquippedWeaponTag == FName("SingleHanded"))
-		{
-			switch (SingleHandedSelection)
-			{
-			case 0:
-				SectionName = FName("Attack1");
-				break;
-			case 1:
-				SectionName = FName("Attack2");
-				break;
-			case 2:
-				SectionName = FName("Attack3");
-				break;
-			default:
-				break;
-			}
-		}
-		else
-		{
-			switch (DoubleHandedSelection)
-			{
-			case 0:
-				SectionName = FName("GreatSword_Attack1");
-				break;
-			case 1:
-				SectionName = FName("GreatSword_Attack2");
-				break;
-			default:
-				break;
-			}
-		}
-		AnimInstance->Montage_JumpToSection(SectionName, AttackMontage);
-	}
-}
-
 void ASlashCharacter::PlayEquipMontage(const FName& SectionName)
 {
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-
-	if (AnimInstance && EquipMontage)
-	{
-		AnimInstance->Montage_Play(EquipMontage);
-		AnimInstance->Montage_JumpToSection(SectionName, EquipMontage);
-	}
+	PlayMontageSection(EquipMontage, SectionName);
 }

@@ -6,6 +6,8 @@
 #include "Items/Weapons/Weapon.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/AttributeComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -35,35 +37,68 @@ void ABaseCharacter::SetWeaponCollisonEnabled(ECollisionEnabled::Type CollisionE
 	}
 }
 
+void ABaseCharacter::DisableCapsule()
+{
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
 void ABaseCharacter::Attack()
 {
 }
 
-void ABaseCharacter::PlayAttackMontage()
+void ABaseCharacter::PlayAttackMontage(const TArray<FName>& AttackMontageSections)
 {
+	if (AttackMontageSections.Num() <= 0) return;
+	const int32 MaxSectionIndex = AttackMontageSections.Num() - 1;
+	const int32 Selection = FMath::RandRange(0, MaxSectionIndex);
+	PlayMontageSection(AttackMontage, AttackMontageSections[Selection]);
+}
+
+void ABaseCharacter::PlayHitSound(const FVector& ImpactPoint)
+{
+	if (HitSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, HitSound, ImpactPoint);
+	}
+}
+
+void ABaseCharacter::SpawnHitParticles(const FVector& ImpactPoint)
+{
+	if (HitParticle)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(this, HitParticle, ImpactPoint);
+	}
+}
+
+void ABaseCharacter::HandleDamage(float DamageAmount)
+{
+	if (Attributes)
+	{
+		Attributes->ReceiveDamage(DamageAmount);
+	}
 }
 
 void ABaseCharacter::PlayHitReactMontage(const FName& SectionName)
 {
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-
-	if (AnimInstance && HitReactMontage)
-	{
-		AnimInstance->Montage_Play(HitReactMontage);
-		AnimInstance->Montage_JumpToSection(SectionName, HitReactMontage);
-	}
+	PlayMontageSection(HitReactMontage, SectionName);
 }
 
 void ABaseCharacter::Die(const FName& SectionName)
 {
+	PlayMontageSection(DeathMontage, SectionName);
+	DisableCapsule();
+	SetLifeSpan(DeathLifeSpan);
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+}
+
+void ABaseCharacter::PlayMontageSection(UAnimMontage* Montage, const FName& SectionName)
+{
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance && DeathMontage)
+	if (AnimInstance && Montage)
 	{
-		AnimInstance->Montage_Play(DeathMontage);
-		AnimInstance->Montage_JumpToSection(SectionName, DeathMontage);
+		AnimInstance->Montage_Play(Montage);
+		AnimInstance->Montage_JumpToSection(SectionName, Montage);
 	}
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	SetLifeSpan(5.f);
 }
 
 bool ABaseCharacter::CanAttack()
@@ -73,6 +108,11 @@ bool ABaseCharacter::CanAttack()
 
 void ABaseCharacter::AttackEnd()
 {
+}
+
+bool ABaseCharacter::IsAlive()
+{
+	return Attributes && Attributes->IsAlive();
 }
 
 void ABaseCharacter::SetDirectionalHitQuadrant(const FVector& ImpactPoint)
@@ -113,57 +153,55 @@ void ABaseCharacter::SetDirectionalHitQuadrant(const FVector& ImpactPoint)
 
 void ABaseCharacter::DirectionalHitReact()
 {
-	FName HitReactMontageSection("ReactFromBack");
+	FName HitReactMontageSection;
 
-	if (DirectionalHitQuadrant == EHitQuadrant::EHQ_Front)
+	switch (DirectionalHitQuadrant)
 	{
+	case EHitQuadrant::EHQ_Front:
 		HitReactMontageSection = FName("ReactFromFront");
-	}
-	else if (DirectionalHitQuadrant == EHitQuadrant::EHQ_Left)
-	{
+		break;
+	case EHitQuadrant::EHQ_Left:
 		HitReactMontageSection = FName("ReactFromLeft");
-	}
-	else if (DirectionalHitQuadrant == EHitQuadrant::EHQ_Right)
-	{
+		break;
+	case EHitQuadrant::EHQ_Right:
 		HitReactMontageSection = FName("ReactFromRight");
-	}
-	else
-	{
+		break;
+	default:
 		HitReactMontageSection = FName("ReactFromBack");
+		break;
 	}
-
 	PlayHitReactMontage(HitReactMontageSection);
 }
 
 void ABaseCharacter::DirectionalDeathReact()
 {
-	FName DeathMontageSection("DeathFromFront1");
-	DeathPose = EDeathPose::EDP_Death2;
+	FName DeathMontageSection;
 	const int32 DeathFromFrontSelection = FMath::RandRange(0, 1);
 
-	if (DirectionalHitQuadrant == EHitQuadrant::EHQ_Front)
+	switch (DirectionalHitQuadrant)
 	{
+	case EHitQuadrant::EHQ_Front:
 		if (DeathFromFrontSelection == 1)
 		{
 			DeathMontageSection = FName("DeathFromFront2");
 			DeathPose = EDeathPose::EDP_Death3;
 		}
-	}
-	else if (DirectionalHitQuadrant == EHitQuadrant::EHQ_Left)
-	{
+		break;
+	case EHitQuadrant::EHQ_Left:
 		DeathMontageSection = FName("DeathFromLeft");
 		DeathPose = EDeathPose::EDP_Death4;
-	}
-	else if (DirectionalHitQuadrant == EHitQuadrant::EHQ_Right)
-	{
+		break;
+	case EHitQuadrant::EHQ_Right:
 		DeathMontageSection = FName("DeathFromRight");
 		DeathPose = EDeathPose::EDP_Death5;
-	}
-	else
-	{
+		break;
+	case EHitQuadrant::EHQ_Back:
 		DeathMontageSection = FName("DeathFromBack");
 		DeathPose = EDeathPose::EDP_Death1;
+		break;
+	default:
+		DeathMontageSection = FName("DeathFromFront1");
+		DeathPose = EDeathPose::EDP_Death2;
 	}
-
 	Die(DeathMontageSection);
 }

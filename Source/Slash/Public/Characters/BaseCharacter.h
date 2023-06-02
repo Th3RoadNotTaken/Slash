@@ -32,11 +32,18 @@ protected:
 	/**
 	* Play montage functions
 	*/
-	virtual void PlayAttackMontage();
+	void PlayAttackMontage(const TArray<FName>& AttackMontageSections);
 	virtual void PlayHitReactMontage(const FName& SectionName);
 	virtual void Die(const FName& SectionName);
+	void PlayMontageSection(UAnimMontage* Montage, const FName& SectionName);
+
+	void PlayHitSound(const FVector& ImpactPoint);
+	void SpawnHitParticles(const FVector& ImpactPoint);
+	virtual void HandleDamage(float DamageAmount);
+	void DisableCapsule();
 
 	virtual bool CanAttack();
+	bool IsAlive();
 
 	UFUNCTION(BlueprintCallable)
 	virtual void AttackEnd();
@@ -48,8 +55,11 @@ protected:
 	void DirectionalHitReact();
 	void DirectionalDeathReact();
 
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float DeathLifeSpan = 8.f;
+
 	UPROPERTY(BlueprintReadOnly)
-	EDeathPose DeathPose = EDeathPose::EDP_Alive;
+	EDeathPose DeathPose;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon")
 	AWeapon* EquippedWeapon;
@@ -69,6 +79,8 @@ protected:
 	*/
 	UPROPERTY(VisibleAnywhere)
 	UAttributeComponent* Attributes;
+
+private:
 
 	UPROPERTY(EditAnywhere, Category = "Sounds")
 	USoundBase* HitSound;

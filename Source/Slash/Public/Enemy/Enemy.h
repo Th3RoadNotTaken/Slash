@@ -20,21 +20,31 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
 	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
+	virtual void Destroyed() override;
 
 protected:
 	virtual void BeginPlay() override;
 
 	bool InTargetRange(AActor* Target, double AcceptanceRadius);
 	void MoveToTarget(AActor* Target);
+	virtual bool CanAttack() override;
 	AActor* ChoosePatrolTarget();
-
 	UFUNCTION()
 	void PawnSeen(APawn* SeenPawn);
+
+	virtual void Attack() override;
+
+	UPROPERTY(BlueprintReadOnly)
+	EEnemyState EnemyState = EEnemyState::EES_Patrolling;
+
+	virtual void HandleDamage(float DamageAmount) override;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	TArray<FName> AttackMontageSections;
 
 private:
 	/**
@@ -45,6 +55,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	UPawnSensingComponent* PawnSensing;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class AWeapon> WeaponClass;
 
 	UPROPERTY()
 	AActor* CombatTarget;
@@ -86,5 +99,32 @@ private:
 	UPROPERTY(EditAnywhere, Category = "AI Navigation")
 	float WalkingSpeed = 125.f;
 
-	EEnemyState EnemyState = EEnemyState::EES_Patrolling;
+	/**
+	* AI Behaviour
+	*/
+	void HideHealthBar();
+	void ShowHealthBar();
+	void LoseInterest();
+	void StartPatrolling();
+	void StartChasing();
+	bool IsOutsideCombatRadius();
+	bool IsOutsideAttackRadius();
+	bool IsInsideAttackRadius();
+	bool IsChasing();
+	bool IsAttacking();
+	bool IsDead();
+	bool IsEngaged();
+	void ClearPatrolTimer();
+
+	/**
+	* Combat
+	*/
+	FTimerHandle AttackTimer;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float AttackMin = 0.5f;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float AttackMax = 0.8f;
+
+	void StartAttackTimer();
+	void ClearAttackTimer();
 };
