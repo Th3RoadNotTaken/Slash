@@ -18,16 +18,28 @@ class SLASH_API ABaseCharacter : public ACharacter, public IHitInterface
 	GENERATED_BODY()
 
 public:
+
 	ABaseCharacter();
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION(BlueprintCallable)
-	void SetWeaponCollisonEnabled(ECollisionEnabled::Type CollisionEnabled);
-
 protected:
+
 	virtual void BeginPlay() override;
 
+	virtual bool CanAttack();
 	virtual void Attack();
+	UFUNCTION(BlueprintCallable)
+	virtual void AttackEnd();
+	bool IsAlive();
+	void SetDirectionalHitQuadrant(const FVector& ImpactPoint);
+	void DirectionalHitReact();
+	void DirectionalDeathReact();
+	virtual void HandleDamage(float DamageAmount);
+	void PlayHitSound(const FVector& ImpactPoint);
+	void SpawnHitParticles(const FVector& ImpactPoint);
+	void DisableCapsule();
+	UFUNCTION(BlueprintCallable)
+	void SetWeaponCollisonEnabled(ECollisionEnabled::Type CollisionEnabled);
 
 	/**
 	* Play montage functions
@@ -37,23 +49,7 @@ protected:
 	virtual void Die(const FName& SectionName);
 	void PlayMontageSection(UAnimMontage* Montage, const FName& SectionName);
 
-	void PlayHitSound(const FVector& ImpactPoint);
-	void SpawnHitParticles(const FVector& ImpactPoint);
-	virtual void HandleDamage(float DamageAmount);
-	void DisableCapsule();
-
-	virtual bool CanAttack();
-	bool IsAlive();
-
-	UFUNCTION(BlueprintCallable)
-	virtual void AttackEnd();
-
-	void SetDirectionalHitQuadrant(const FVector& ImpactPoint);
-
 	EHitQuadrant DirectionalHitQuadrant = EHitQuadrant::EHQ_Front;
-
-	void DirectionalHitReact();
-	void DirectionalDeathReact();
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float DeathLifeSpan = 8.f;
@@ -64,19 +60,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon")
 	AWeapon* EquippedWeapon;
 
-	/**
-	* Animation Montages
-	*/
-	UPROPERTY(EditDefaultsOnly, Category = "Montages")
-	UAnimMontage* AttackMontage;
-	UPROPERTY(EditDefaultsOnly, Category = "Montages")
-	UAnimMontage* HitReactMontage;
-	UPROPERTY(EditDefaultsOnly, Category = "Montages")
-	UAnimMontage* DeathMontage;
-
-	/** 
-	*Components
-	*/
 	UPROPERTY(VisibleAnywhere)
 	UAttributeComponent* Attributes;
 
@@ -87,4 +70,14 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "VisualEffects")
 	UParticleSystem* HitParticle;
+
+	/**
+	* Animation Montages
+	*/
+	UPROPERTY(EditDefaultsOnly, Category = "Montages")
+	UAnimMontage* AttackMontage;
+	UPROPERTY(EditDefaultsOnly, Category = "Montages")
+	UAnimMontage* HitReactMontage;
+	UPROPERTY(EditDefaultsOnly, Category = "Montages")
+	UAnimMontage* DeathMontage;
 };

@@ -31,6 +31,32 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
+
+	/** Callbacks for input */
+	void Move(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);
+	void EKeyPressed();
+	virtual void Attack() override;
+
+	/** Combat */
+	virtual void AttackEnd() override;
+	virtual bool CanAttack() override;
+	void EquipWeapon(AWeapon* Weapon);
+	bool CanDisarm();
+	bool CanArm();
+	void Disarm();
+	void Arm();
+	UFUNCTION(BlueprintCallable)
+	void AttachWeaponToBack();
+	UFUNCTION(BlueprintCallable)
+	void AttachWeaponToHand();
+	UFUNCTION(BlueprintCallable)
+	void FinishEquipping();
+	void PlayEquipMontage(const FName& SectionName);
+
+	/** 
+	* Enhanced Input Components
+	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputMappingContext* SlashMappingContext;
 
@@ -49,40 +75,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* LMBAction;
 
-	/*
-	* Callbacks for input
-	*/
-	void Move(const FInputActionValue& Value);
-
-	void Look(const FInputActionValue& Value);
-
-	void EKeyPressed();
-
-	virtual void Attack() override;
-
-	/**
-	* Play montage functions
-	*/
-	virtual void AttackEnd() override;
-	virtual bool CanAttack() override;
-
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	TArray<FName> SingleHandedAttackSections;
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	TArray<FName> DoubleHandedAttackSections;
-
-	void PlayEquipMontage(const FName& SectionName);
-	bool CanDisarm();
-	bool CanArm();
-	UFUNCTION(BlueprintCallable)
-	void Disarm();
-	UFUNCTION(BlueprintCallable)
-	void Arm();
-	UFUNCTION(BlueprintCallable)
-	void FinishEquipping();
-
 private:
 
+	/** Character Components */
 	UPROPERTY(VisibleAnywhere)
 	USpringArmComponent* CameraBoom;
 
@@ -101,11 +96,16 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	FName EquippedWeaponTag;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Montages")
+	UAnimMontage* EquipMontage;
+
 	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
 	EActionState ActionState = EActionState::EAS_Unoccupied;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Montages")
-	UAnimMontage* EquipMontage;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	TArray<FName> SingleHandedAttackSections;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	TArray<FName> DoubleHandedAttackSections;
 
 public:
 

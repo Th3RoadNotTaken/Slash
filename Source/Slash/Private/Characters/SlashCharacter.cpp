@@ -9,8 +9,6 @@
 #include "Camera/CameraComponent.h"
 #include "GroomComponent.h"
 #include "Items/Weapons/Weapon.h"
-#include "Animation/AnimMontage.h"
-#include "Components/BoxComponent.h"
 
 ASlashCharacter::ASlashCharacter()
 { 	
@@ -32,24 +30,9 @@ ASlashCharacter::ASlashCharacter()
 	Eyebrows->AttachmentName = FString("head");
 }
 
-void ASlashCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-
-	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(SlashMappingContext, 0);
-		}
-	}
-	Tags.Add(FName("SlashCharacter"));
-}
-
 void ASlashCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -64,6 +47,20 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		EnhancedInputComponent->BindAction(EKeyAction, ETriggerEvent::Triggered, this, &ASlashCharacter::EKeyPressed);
 		EnhancedInputComponent->BindAction(LMBAction, ETriggerEvent::Triggered, this, &ASlashCharacter::Attack);
 	}
+}
+
+void ASlashCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(SlashMappingContext, 0);
+		}
+	}
+	Tags.Add(FName("SlashCharacter"));
 }
 
 void ASlashCharacter::Move(const FInputActionValue& Value)
@@ -94,53 +91,18 @@ void ASlashCharacter::EKeyPressed()
 	AWeapon* OverlappingWeapon = Cast<AWeapon>(OverlappingItem);
 	if (OverlappingWeapon)
 	{
-		if (EquippedWeapon)
-		{
-			EquippedWeapon->Destroy();
-		}
-		if (OverlappingWeapon->ActorHasTag(FName("SingleHanded")))
-		{
-			EquippedWeaponTag = FName("SingleHanded");
-			CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
-		}
-		else if (OverlappingWeapon->ActorHasTag(FName("DoubleHanded")))
-		{
-			EquippedWeaponTag = FName("DoubleHanded");
-			CharacterState = ECharacterState::ECS_EquippedTwoHandedWeapon;
-		}
-		OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
-		EquippedWeapon = OverlappingWeapon;
-		OverlappingItem = nullptr;
+		EquipWeapon(OverlappingWeapon);
 	}
 	else
 	{
 		if (CanDisarm())
 		{
-			if (EquippedWeaponTag == FName("SingleHanded"))
-			{
-				PlayEquipMontage(FName("UnequipSingleHanded"));
-			}
-			else
-			{
-				PlayEquipMontage(FName("UnequipDoubleHanded"));
-			}
-			CharacterState = ECharacterState::ECS_Unequipped;
-			ActionState = EActionState::EAS_EquippingWeapon;
+			Disarm();
 		}
 
 		else if (CanArm())
 		{
-			if (EquippedWeaponTag == FName("SingleHanded"))
-			{
-				PlayEquipMontage(FName("EquipSingleHanded"));
-				CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
-			}
-			else
-			{
-				PlayEquipMontage(FName("EquipDoubleHanded"));
-				CharacterState = ECharacterState::ECS_EquippedTwoHandedWeapon;
-			}
-			ActionState = EActionState::EAS_EquippingWeapon;
+			Arm();
 		}
 	}
 }
@@ -162,10 +124,36 @@ void ASlashCharacter::Attack()
 	}
 }
 
+void ASlashCharacter::AttackEnd()
+{
+	ActionState = EActionState::EAS_Unoccupied;
+}
+
 bool ASlashCharacter::CanAttack()
 {
 	return ActionState == EActionState::EAS_Unoccupied && 
 		CharacterState != ECharacterState::ECS_Unequipped;
+}
+
+void ASlashCharacter::EquipWeapon(AWeapon* Weapon)
+{
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->Destroy();
+	}
+	if (Weapon->ActorHasTag(FName("SingleHanded")))
+	{
+		EquippedWeaponTag = FName("SingleHanded");
+		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+	}
+	else if (Weapon->ActorHasTag(FName("DoubleHanded")))
+	{
+		EquippedWeaponTag = FName("DoubleHanded");
+		CharacterState = ECharacterState::ECS_EquippedTwoHandedWeapon;
+	}
+	Weapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
+	EquippedWeapon = Weapon;
+	OverlappingItem = nullptr;
 }
 
 bool ASlashCharacter::CanDisarm()
@@ -180,13 +168,42 @@ bool ASlashCharacter::CanArm()
 
 void ASlashCharacter::Disarm()
 {
+	if (EquippedWeaponTag == FName("SingleHanded"))
+	{
+		PlayEquipMontage(FName("UnequipSingleHanded"));
+	}
+	else
+	{
+		PlayEquipMontage(FName("UnequipDoubleHanded"));
+	}
+	CharacterState = ECharacterState::ECS_Unequipped;
+	ActionState = EActionState::EAS_EquippingWeapon;
+}
+
+void ASlashCharacter::Arm()
+{
+	if (EquippedWeaponTag == FName("SingleHanded"))
+	{
+		PlayEquipMontage(FName("EquipSingleHanded"));
+		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+	}
+	else
+	{
+		PlayEquipMontage(FName("EquipDoubleHanded"));
+		CharacterState = ECharacterState::ECS_EquippedTwoHandedWeapon;
+	}
+	ActionState = EActionState::EAS_EquippingWeapon;
+}
+
+void ASlashCharacter::AttachWeaponToBack()
+{
 	if (EquippedWeapon)
 	{
 		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("SpineSocket"));
 	}
 }
 
-void ASlashCharacter::Arm()
+void ASlashCharacter::AttachWeaponToHand()
 {
 	if (EquippedWeapon)
 	{
@@ -195,11 +212,6 @@ void ASlashCharacter::Arm()
 }
 
 void ASlashCharacter::FinishEquipping()
-{
-	ActionState = EActionState::EAS_Unoccupied;
-}
-
-void ASlashCharacter::AttackEnd()
 {
 	ActionState = EActionState::EAS_Unoccupied;
 }
