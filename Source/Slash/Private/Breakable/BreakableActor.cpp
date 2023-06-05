@@ -37,7 +37,7 @@ void ABreakableActor::Tick(float DeltaTime)
 
 }
 
-void ABreakableActor::GetHit_Implementation(const FVector& ImpactPoint)
+void ABreakableActor::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
 {
 	if (bBroken)
 		return;
@@ -64,5 +64,5 @@ void ABreakableActor::OnChaosBreak(const FChaosBreakEvent& BreakEvent)
 {
 	SetLifeSpan(3.f);
 	Capsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
-	GetHit_Implementation(BreakEvent.Location);
+	GetHit_Implementation(BreakEvent.Location, nullptr);
 }

@@ -6,6 +6,8 @@
 #include "EnhancedInputComponent.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GroomComponent.h"
 #include "Items/Weapons/Weapon.h"
@@ -13,6 +15,18 @@
 ASlashCharacter::ASlashCharacter()
 { 	
 	PrimaryActorTick.bCanEverTick = true;
+
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationRoll = false;
+	bUseControllerRotationYaw = false;
+
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f);
+	GetMesh()->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+	GetMesh()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
+	GetMesh()->SetGenerateOverlapEvents(true);
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(GetRootComponent());
@@ -49,6 +63,19 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	}
 }
 
+void ASlashCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
+{
+	Super::GetHit_Implementation(ImpactPoint, Hitter);
+	SetWeaponCollisonEnabled(ECollisionEnabled::NoCollision);
+	ActionState = EActionState::EAS_HitReaction;
+}
+
+float ASlashCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	HandleDamage(DamageAmount);
+	return DamageAmount;
+}
+
 void ASlashCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -60,7 +87,7 @@ void ASlashCharacter::BeginPlay()
 			Subsystem->AddMappingContext(SlashMappingContext, 0);
 		}
 	}
-	Tags.Add(FName("SlashCharacter"));
+	Tags.Add(FName("EngageableTarget"));
 }
 
 void ASlashCharacter::Move(const FInputActionValue& Value)
@@ -216,7 +243,17 @@ void ASlashCharacter::FinishEquipping()
 	ActionState = EActionState::EAS_Unoccupied;
 }
 
+void ASlashCharacter::HitReactEnd()
+{
+	ActionState = EActionState::EAS_Unoccupied;
+}
+
 void ASlashCharacter::PlayEquipMontage(const FName& SectionName)
 {
 	PlayMontageSection(EquipMontage, SectionName);
+}
+
+void ASlashCharacter::HandleDamage(float DamageAmount)
+{
+	Super::HandleDamage(DamageAmount);
 }

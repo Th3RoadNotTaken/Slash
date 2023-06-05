@@ -64,25 +64,11 @@ void AEnemy::Destroyed()
 	}
 }
 
-void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
+void AEnemy::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
 {
-	if (IsDead()) return;
-	ShowHealthBar();
-	SetDirectionalHitQuadrant(ImpactPoint);
-	if (IsAlive())
-	{
-		DirectionalHitReact();
-	}
-	else
-	{
-		EnemyState = EEnemyState::EES_Dead;
-		ClearAttackTimer();
-		HideHealthBar();
-		DirectionalDeathReact();
-	}
-
-	PlayHitSound(ImpactPoint);
-	SpawnHitParticles(ImpactPoint);
+	Super::GetHit_Implementation(ImpactPoint, Hitter);
+	if(!IsDead())ShowHealthBar();
+	ClearPatrolTimer();
 }
 
 void AEnemy::BeginPlay()
@@ -94,6 +80,7 @@ void AEnemy::BeginPlay()
 		PawnSensing->OnSeePawn.AddDynamic(this, &AEnemy::PawnSeen);
 	}
 	InitializeEnemy();
+	Tags.Add(FName("Enemy"));
 }
 
 bool AEnemy::CanAttack()
@@ -126,6 +113,16 @@ void AEnemy::HandleDamage(float DamageAmount)
 	{
 		HealthBarWidget->SetHealthPercent(Attributes->GetHealthPercent());
 	}
+}
+
+void AEnemy::Die()
+{
+	Super::Die();
+	EnemyState = EEnemyState::EES_Dead;
+	SetWeaponCollisonEnabled(ECollisionEnabled::NoCollision);
+	DirectionalDeathReact();
+	ClearAttackTimer();
+	HideHealthBar();
 }
 
 void AEnemy::InitializeEnemy()
@@ -326,7 +323,7 @@ void AEnemy::PawnSeen(APawn* SeenPawn)
 		EnemyState != EEnemyState::EES_Dead &&
 		EnemyState != EEnemyState::EES_Chasing &&
 		EnemyState < EEnemyState::EES_Attacking &&
-		SeenPawn && SeenPawn->ActorHasTag(FName("SlashCharacter"));
+		SeenPawn && SeenPawn->ActorHasTag(FName("EngageableTarget"));
 
 	if(bShouldChaseTarget)
 	{

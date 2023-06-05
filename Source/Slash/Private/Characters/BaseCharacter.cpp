@@ -29,6 +29,22 @@ void ABaseCharacter::BeginPlay()
 
 }
 
+void ABaseCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
+{
+	if(Hitter)
+		SetDirectionalHitQuadrant(Hitter->GetActorLocation());
+	if (IsAlive())
+	{
+		DirectionalHitReact();
+	}
+	else
+	{
+		Die();
+	}
+	PlayHitSound(ImpactPoint);
+	SpawnHitParticles(ImpactPoint);
+}
+
 bool ABaseCharacter::CanAttack()
 {
 	return false;
@@ -85,7 +101,7 @@ void ABaseCharacter::SetDirectionalHitQuadrant(const FVector& ImpactPoint)
 
 void ABaseCharacter::DirectionalHitReact()
 {
-	FName HitReactMontageSection;
+	FName HitReactMontageSection("ReactFromBack");
 
 	switch (DirectionalHitQuadrant)
 	{
@@ -107,7 +123,8 @@ void ABaseCharacter::DirectionalHitReact()
 
 void ABaseCharacter::DirectionalDeathReact()
 {
-	FName DeathMontageSection;
+	FName DeathMontageSection("DeathFromFront1");
+	DeathPose = EDeathPose::EDP_Death2;
 	const int32 DeathFromFrontSelection = FMath::RandRange(0, 1);
 
 	switch (DirectionalHitQuadrant)
@@ -134,8 +151,9 @@ void ABaseCharacter::DirectionalDeathReact()
 	default:
 		DeathMontageSection = FName("DeathFromFront1");
 		DeathPose = EDeathPose::EDP_Death2;
+		break;
 	}
-	Die(DeathMontageSection);
+	PlayMontageSection(DeathMontage, DeathMontageSection);
 }
 
 void ABaseCharacter::HandleDamage(float DamageAmount)
@@ -189,9 +207,8 @@ void ABaseCharacter::PlayHitReactMontage(const FName& SectionName)
 	PlayMontageSection(HitReactMontage, SectionName);
 }
 
-void ABaseCharacter::Die(const FName& SectionName)
+void ABaseCharacter::Die()
 {
-	PlayMontageSection(DeathMontage, SectionName);
 	DisableCapsule();
 	SetLifeSpan(DeathLifeSpan);
 	GetCharacterMovement()->bOrientRotationToMovement = false;

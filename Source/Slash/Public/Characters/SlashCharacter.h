@@ -27,6 +27,10 @@ public:
 	ASlashCharacter();
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	/** <IHitInterface> */
+	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
+	/** </IHitInterface> */
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 protected:
 
@@ -52,7 +56,10 @@ protected:
 	void AttachWeaponToHand();
 	UFUNCTION(BlueprintCallable)
 	void FinishEquipping();
+	UFUNCTION(BlueprintCallable)
+	void HitReactEnd();
 	void PlayEquipMontage(const FName& SectionName);
+	virtual void HandleDamage(float DamageAmount) override;
 
 	/** 
 	* Enhanced Input Components

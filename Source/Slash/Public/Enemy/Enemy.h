@@ -23,7 +23,7 @@ public:
 	virtual void Destroyed() override;
 
 	/** <IHitInterface> */
-	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
+	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
 	/** </IHitInterface> */
 
 protected:
@@ -37,9 +37,10 @@ protected:
 	virtual void Attack() override;
 	virtual void AttackEnd() override;
 	virtual void HandleDamage(float DamageAmount) override;
+	virtual void Die() override;
 	/** </ABaseCharacter */
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	EEnemyState EnemyState = EEnemyState::EES_Patrolling;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
