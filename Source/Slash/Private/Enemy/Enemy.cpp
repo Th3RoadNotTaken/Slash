@@ -52,7 +52,14 @@ float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AC
 {
 	HandleDamage(DamageAmount);
 	CombatTarget = EventInstigator->GetPawn();
-	StartChasing();
+	if (IsInsideAttackRadius())
+	{
+		EnemyState = EEnemyState::EES_Attacking;
+	}
+	else if (IsOutsideAttackRadius())
+	{
+		StartChasing();
+	}
 	return DamageAmount;
 }
 
@@ -69,6 +76,9 @@ void AEnemy::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
 	Super::GetHit_Implementation(ImpactPoint, Hitter);
 	if(!IsDead())ShowHealthBar();
 	ClearPatrolTimer();
+	ClearAttackTimer();
+	SetWeaponCollisonEnabled(ECollisionEnabled::NoCollision);
+	StopAttackMontage();
 }
 
 void AEnemy::BeginPlay()

@@ -48,9 +48,15 @@ protected:
 	* Play montage functions
 	*/
 	void PlayAttackMontage(const TArray<FName>& AttackMontageSections);
+	void StopAttackMontage();
 	virtual void PlayHitReactMontage(const FName& SectionName);
 	virtual void Die();
 	void PlayMontageSection(UAnimMontage* Montage, const FName& SectionName);
+
+	UFUNCTION(BlueprintCallable)
+	FVector GetTranslationWarpTarget();
+	UFUNCTION(BlueprintCallable)
+	FVector GetRotationWarpTarget();
 
 	EHitQuadrant DirectionalHitQuadrant = EHitQuadrant::EHQ_Front;
 
@@ -65,6 +71,12 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	UAttributeComponent* Attributes;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Combat")
+	AActor* CombatTarget;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	double WarpTargetDistance = 75.f;
 
 private:
 
