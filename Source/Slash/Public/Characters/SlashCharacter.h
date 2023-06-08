@@ -16,6 +16,7 @@ class UGroomComponent;
 class AItem;
 class UAnimMontage;
 class AWeapon;
+class USlashOverlay;
 
 UCLASS()
 class SLASH_API ASlashCharacter : public ABaseCharacter
@@ -27,6 +28,7 @@ public:
 	ASlashCharacter();
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void Jump() override;
 	/** <IHitInterface> */
 	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
 	/** </IHitInterface> */
@@ -45,6 +47,7 @@ protected:
 	/** Combat */
 	virtual void AttackEnd() override;
 	virtual bool CanAttack() override;
+	virtual void Die() override;
 	void EquipWeapon(AWeapon* Weapon);
 	bool CanDisarm();
 	bool CanArm();
@@ -84,6 +87,10 @@ protected:
 
 private:
 
+	bool IsUnoccupied();
+	void InitializeSlashOverlay();
+	void SetHUDHealth();
+
 	/** Character Components */
 	UPROPERTY(VisibleAnywhere)
 	USpringArmComponent* CameraBoom;
@@ -114,8 +121,12 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	TArray<FName> DoubleHandedAttackSections;
 
+	UPROPERTY()
+	USlashOverlay* SlashOverlay;
+
 public:
 
 	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
 	FORCEINLINE ECharacterState GetCharacterState() const { return CharacterState; }
+	FORCEINLINE EActionState GetActionState() { return ActionState; }
 };

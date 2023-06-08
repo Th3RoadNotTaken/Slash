@@ -106,6 +106,7 @@ bool AEnemy::CanAttack()
 void AEnemy::Attack()
 {
 	Super::Attack();
+	if (CombatTarget == nullptr) return;
 	EnemyState = EEnemyState::EES_Engaged;
 	PlayAttackMontage(AttackMontageSections);
 }
@@ -129,8 +130,6 @@ void AEnemy::Die()
 {
 	Super::Die();
 	EnemyState = EEnemyState::EES_Dead;
-	SetWeaponCollisonEnabled(ECollisionEnabled::NoCollision);
-	DirectionalDeathReact();
 	ClearAttackTimer();
 	HideHealthBar();
 }
@@ -333,7 +332,8 @@ void AEnemy::PawnSeen(APawn* SeenPawn)
 		EnemyState != EEnemyState::EES_Dead &&
 		EnemyState != EEnemyState::EES_Chasing &&
 		EnemyState < EEnemyState::EES_Attacking &&
-		SeenPawn && SeenPawn->ActorHasTag(FName("EngageableTarget"));
+		SeenPawn && SeenPawn->ActorHasTag(FName("EngageableTarget")) &&
+		!SeenPawn->ActorHasTag(FName("Dead"));
 
 	if(bShouldChaseTarget)
 	{

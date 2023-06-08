@@ -52,6 +52,10 @@ bool ABaseCharacter::CanAttack()
 
 void ABaseCharacter::Attack()
 {
+	if (CombatTarget && CombatTarget->ActorHasTag(FName("Dead")))
+	{
+		CombatTarget = nullptr;
+	}
 }
 
 void ABaseCharacter::AttackEnd()
@@ -149,8 +153,6 @@ void ABaseCharacter::DirectionalDeathReact()
 		DeathPose = EDeathPose::EDP_Death1;
 		break;
 	default:
-		DeathMontageSection = FName("DeathFromFront1");
-		DeathPose = EDeathPose::EDP_Death2;
 		break;
 	}
 	PlayMontageSection(DeathMontage, DeathMontageSection);
@@ -183,6 +185,11 @@ void ABaseCharacter::SpawnHitParticles(const FVector& ImpactPoint)
 void ABaseCharacter::DisableCapsule()
 {
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void ABaseCharacter::DisableMesh()
+{
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void ABaseCharacter::SetWeaponCollisonEnabled(ECollisionEnabled::Type CollisionEnabled)
@@ -218,7 +225,11 @@ void ABaseCharacter::PlayHitReactMontage(const FName& SectionName)
 
 void ABaseCharacter::Die()
 {
+	Tags.Add(FName("Dead"));
+	DirectionalDeathReact();
 	DisableCapsule();
+	DisableMesh();
+	SetWeaponCollisonEnabled(ECollisionEnabled::NoCollision);
 	SetLifeSpan(DeathLifeSpan);
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 }

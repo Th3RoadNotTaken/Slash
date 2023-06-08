@@ -41,6 +41,7 @@ protected:
 	void PlayHitSound(const FVector& ImpactPoint);
 	void SpawnHitParticles(const FVector& ImpactPoint);
 	void DisableCapsule();
+	void DisableMesh();
 	UFUNCTION(BlueprintCallable)
 	void SetWeaponCollisonEnabled(ECollisionEnabled::Type CollisionEnabled);
 
@@ -95,4 +96,8 @@ private:
 	UAnimMontage* HitReactMontage;
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	UAnimMontage* DeathMontage;
+
+public:
+
+	FORCEINLINE EDeathPose GetDeathPose() const { return DeathPose; }
 };
