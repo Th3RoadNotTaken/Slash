@@ -39,6 +39,7 @@ protected:
 	virtual void HandleDamage(float DamageAmount) override;
 	virtual void Die() override;
 	/** </ABaseCharacter */
+	void SpawnSoul();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	EEnemyState EnemyState = EEnemyState::EES_Patrolling;
@@ -120,4 +121,7 @@ private:
 	float RunningSpeed = 300.f;
 	UPROPERTY(EditAnywhere, Category = "AI Navigation")
 	float WalkingSpeed = 125.f;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	TSubclassOf<class ASoul> SoulClass;
 };

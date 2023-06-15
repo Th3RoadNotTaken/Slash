@@ -19,6 +19,7 @@ class UAnimMontage;
 class AWeapon;
 class USlashOverlay;
 class ASoul;
+class ATreasure;
 
 UCLASS()
 class SLASH_API ASlashCharacter : public ABaseCharacter, public IPickupInterface
@@ -36,7 +37,8 @@ public:
 	/** </IHitInterface> */
 	/** <IPickupInterface> */
 	virtual void SetOverlappingItem(AItem* Item) override;
-	virtual void AddSouls(ASoul* Soul);
+	virtual void AddSouls(ASoul* Soul) override;
+	virtual void AddGold(ATreasure* Treasure) override;
 	/** </IPickupInterface> */
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 

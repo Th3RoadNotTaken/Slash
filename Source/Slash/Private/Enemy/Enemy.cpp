@@ -9,6 +9,7 @@
 #include "Components/AttributeComponent.h"
 #include "Slash/DebugMacros.h"
 #include "Items/Weapons/Weapon.h"
+#include "Items/Soul.h"
 #include "AIController.h"
 
 // Sets default values
@@ -132,6 +133,21 @@ void AEnemy::Die()
 	EnemyState = EEnemyState::EES_Dead;
 	ClearAttackTimer();
 	HideHealthBar();
+	SpawnSoul();
+}
+
+void AEnemy::SpawnSoul()
+{
+	UWorld* World = GetWorld();
+	if (World && SoulClass && Attributes)
+	{
+		const FVector SpawnLocation = GetActorLocation() + FVector(0.f, 0.f, 60.f);
+		ASoul* SpawnedSoul = World->SpawnActor<ASoul>(SoulClass, SpawnLocation, GetActorRotation());
+		if (SpawnedSoul)
+		{
+			SpawnedSoul->SetSouls(Attributes->GetSouls());
+		}
+	}
 }
 
 void AEnemy::InitializeEnemy()

@@ -12,6 +12,8 @@
 #include "GroomComponent.h"
 #include "Components/AttributeComponent.h"
 #include "Items/Weapons/Weapon.h"
+#include "Items/Soul.h"
+#include "Items/Treasure.h"
 #include "HUD/SlashHUD.h"
 #include "HUD/SlashOverlay.h"
 
@@ -91,6 +93,20 @@ void ASlashCharacter::SetOverlappingItem(AItem* Item)
 
 void ASlashCharacter::AddSouls(ASoul* Soul)
 {
+	if (Attributes && SlashOverlay)
+	{
+		Attributes->AddSouls(Soul->GetSouls());
+		SlashOverlay->SetSouls(Attributes->GetSouls());
+	}
+}
+
+void ASlashCharacter::AddGold(ATreasure* Treasure)
+{
+	if (Attributes && SlashOverlay)
+	{
+		Attributes->AddGold(Treasure->GetGold());
+		SlashOverlay->SetGold(Attributes->GetGold());
+	}
 }
 
 float ASlashCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
