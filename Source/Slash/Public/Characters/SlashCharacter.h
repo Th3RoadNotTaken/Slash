@@ -51,11 +51,14 @@ protected:
 	void Look(const FInputActionValue& Value);
 	void EKeyPressed();
 	virtual void Attack() override;
+	void Dodge();
 
 	/** Combat */
 	virtual void AttackEnd() override;
 	virtual bool CanAttack() override;
+	virtual void DodgeEnd() override;
 	virtual void Die() override;
+	bool HasEnoughStamina();
 	void EquipWeapon(AWeapon* Weapon);
 	bool CanDisarm();
 	bool CanArm();
@@ -92,6 +95,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* LMBAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction* DodgeAction;
 
 private:
 

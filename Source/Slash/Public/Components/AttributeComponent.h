@@ -16,6 +16,8 @@ public:
 	UAttributeComponent();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	void RegenStamina(float DeltaTime);
+
 protected:
 	virtual void BeginPlay() override;	
 
@@ -27,6 +29,19 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Actor Attributes")
 	float MaxHealth;
 
+	//Current Stamina
+	UPROPERTY(EditAnywhere, Category = "Actor Attributes")
+	float Stamina;
+
+	UPROPERTY(EditAnywhere, Category = "Actor Attributes")
+	float MaxStamina;
+
+	UPROPERTY(EditAnywhere, Category = "Actor Attributes")
+	float StaminaRegenRate = 2.f;
+
+	UPROPERTY(EditAnywhere, Category = "Actor Attributes")
+	float DodgeCost = 14.f;
+
 	UPROPERTY(EditAnywhere, Category = "Actor Attributes")
 	int32 Gold;
 
@@ -36,6 +51,10 @@ private:
 public:
 	void ReceiveDamage(float Damage);
 	float GetHealthPercent();
+	void UseStamina(float StaminaCost);
+	float GetStaminaPercent();
+	FORCEINLINE float GetDodgeCost() const { return DodgeCost; }
+	FORCEINLINE float GetStamina() const { return Stamina; }
 	bool IsAlive();
 	void AddSouls(int32 NumberOfSouls);
 	void AddGold(int32 AmountOfGold);

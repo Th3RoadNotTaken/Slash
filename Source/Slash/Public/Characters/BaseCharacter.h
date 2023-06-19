@@ -33,6 +33,8 @@ protected:
 	virtual void Attack();
 	UFUNCTION(BlueprintCallable)
 	virtual void AttackEnd();
+	UFUNCTION(BlueprintCallable)
+	virtual void DodgeEnd();
 	bool IsAlive();
 	void SetDirectionalHitQuadrant(const FVector& ImpactPoint);
 	void DirectionalHitReact();
@@ -50,6 +52,7 @@ protected:
 	*/
 	void PlayAttackMontage(const TArray<FName>& AttackMontageSections);
 	void StopAttackMontage();
+	virtual void PlayDodgeMontage();
 	virtual void PlayHitReactMontage(const FName& SectionName);
 	virtual void Die();
 	void PlayMontageSection(UAnimMontage* Montage, const FName& SectionName);
@@ -96,6 +99,8 @@ private:
 	UAnimMontage* HitReactMontage;
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	UAnimMontage* DeathMontage;
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	UAnimMontage* DodgeMontage;
 
 public:
 

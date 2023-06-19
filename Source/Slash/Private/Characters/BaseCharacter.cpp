@@ -62,6 +62,10 @@ void ABaseCharacter::AttackEnd()
 {
 }
 
+void ABaseCharacter::DodgeEnd()
+{
+}
+
 bool ABaseCharacter::IsAlive()
 {
 	return Attributes && Attributes->IsAlive();
@@ -216,6 +220,11 @@ void ABaseCharacter::StopAttackMontage()
 	{
 		AnimInstance->Montage_Stop(0.25f, AttackMontage);
 	}
+}
+
+void ABaseCharacter::PlayDodgeMontage()
+{
+	PlayMontageSection(DodgeMontage, TEXT("Default"));
 }
 
 void ABaseCharacter::PlayHitReactMontage(const FName& SectionName)
