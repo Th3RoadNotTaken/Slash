@@ -39,6 +39,8 @@ public:
 	virtual void SetOverlappingItem(AItem* Item) override;
 	virtual void AddSouls(ASoul* Soul) override;
 	virtual void AddGold(ATreasure* Treasure) override;
+	virtual void IncrementHealth(class APotion* Potion) override;
+	virtual void IncrementStamina(APotion* Potion) override;
 	/** </IPickupInterface> */
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 

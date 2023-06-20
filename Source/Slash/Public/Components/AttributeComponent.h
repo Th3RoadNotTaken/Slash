@@ -60,4 +60,6 @@ public:
 	void AddGold(int32 AmountOfGold);
 	FORCEINLINE int32 GetGold() const { return Gold; }
 	FORCEINLINE int32 GetSouls() const { return Souls; }
+	void IncrementHealth(float HealthPoints);
+	void IncrementStamina(float StaminaPoints);
 };

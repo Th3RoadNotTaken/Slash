@@ -16,3 +16,11 @@ void IPickupInterface::AddSouls(ASoul* Soul)
 void IPickupInterface::AddGold(ATreasure* Treasure)
 {
 }
+
+void IPickupInterface::IncrementHealth(APotion* Potion)
+{
+}
+
+void IPickupInterface::IncrementStamina(APotion* Potion)
+{
+}

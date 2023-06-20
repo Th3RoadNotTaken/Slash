@@ -14,6 +14,7 @@
 #include "Items/Weapons/Weapon.h"
 #include "Items/Soul.h"
 #include "Items/Treasure.h"
+#include "Items/Potion.h"
 #include "HUD/SlashHUD.h"
 #include "HUD/SlashOverlay.h"
 
@@ -113,6 +114,24 @@ void ASlashCharacter::AddGold(ATreasure* Treasure)
 	{
 		Attributes->AddGold(Treasure->GetGold());
 		SlashOverlay->SetGold(Attributes->GetGold());
+	}
+}
+
+void ASlashCharacter::IncrementHealth(APotion* Potion)
+{
+	if (Attributes && SlashOverlay)
+	{
+		Attributes->IncrementHealth(Potion->GetHealthPoints());
+		SlashOverlay->SetHealthBarPercent(Attributes->GetHealthPercent());
+	}
+}
+
+void ASlashCharacter::IncrementStamina(APotion* Potion)
+{
+	if (Attributes && SlashOverlay)
+	{
+		Attributes->IncrementStamina(Potion->GetStaminaPoints());
+		SlashOverlay->SetStaminaBarPercent(Attributes->GetStaminaPercent());
 	}
 }
 
