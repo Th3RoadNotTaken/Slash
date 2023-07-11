@@ -59,7 +59,7 @@ protected:
 	virtual void AttackEnd() override;
 	virtual bool CanAttack() override;
 	virtual void DodgeEnd() override;
-	virtual void Die() override;
+	virtual void Die_Implementation() override;
 	bool HasEnoughStamina();
 	void EquipWeapon(AWeapon* Weapon);
 	bool CanDisarm();

@@ -54,7 +54,8 @@ protected:
 	void StopAttackMontage();
 	virtual void PlayDodgeMontage();
 	virtual void PlayHitReactMontage(const FName& SectionName);
-	virtual void Die();
+	UFUNCTION(BlueprintNativeEvent)
+	void Die();
 	void PlayMontageSection(UAnimMontage* Montage, const FName& SectionName);
 
 	UFUNCTION(BlueprintCallable)
